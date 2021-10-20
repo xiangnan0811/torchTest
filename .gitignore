@@ -144,7 +144,4 @@ cython_debug/
 # Notebook cache directory
 .ipynb_checkpoints/
 
-# data directory
-data/
-
 .DS_Store
