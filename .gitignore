@@ -148,3 +148,6 @@ cython_debug/
 
 # 排除 logs 目录
 logs/*
+
+# 排除 .tar.gz
+*.tar.gz
