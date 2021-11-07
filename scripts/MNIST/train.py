@@ -1,28 +1,15 @@
 # encoding=utf-8
-from torchvision.datasets import MNIST
-from torchvision import transforms
-from torch.utils.data import DataLoader
-from torch import nn, optim, device, cuda, save, load
-from tqdm import tqdm
-import valid
-import numpy as np
 import os
 
+import numpy as np
+from tqdm import tqdm
+from torchvision import transforms
+from torchvision.datasets import MNIST
+from torch.utils.data import DataLoader
+from torch import nn, optim, device, cuda, save, load
 
-class MNISTModel(nn.Module):
-    def __init__(self):
-        super(MNISTModel, self).__init__()
-        self.fc1 = nn.Linear(1 * 28 * 28, 100)
-        self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(100, 10)
-
-    def forward(self, x):
-        x = x.view(-1, 1 * 28 * 28)
-        x = self.fc1(x)
-        x = self.relu(x)
-        out = self.fc2(x)
-        return out
-
+import valid
+from model import MNISTModel
 
 # 选取设备
 device = device('cuda' if cuda.is_available() else 'cpu')
@@ -35,11 +22,11 @@ criterion = nn.CrossEntropyLoss()
 # 定义优化器
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 # 加载已经训练好的模型和优化器继续进行训练
-model_path = './models/mnist_model.pkl'
-optimizer_path = './models/mnist_optimizer.pkl'
-if os.path.exists(model_path):
-    model.load_state_dict(load(model_path))
-    optimizer.load_state_dict(load(optimizer_path))
+best_model_path = './models/mnist_best_model.pkl'
+best_optimizer_path = './models/mnist_best_optimizer.pkl'
+if os.path.exists(best_model_path):
+    model.load_state_dict(load(best_model_path))
+    optimizer.load_state_dict(load(best_optimizer_path))
 # 加载数据集
 transform = transforms.Compose([
     transforms.ToTensor(),
@@ -49,10 +36,13 @@ train_set = MNIST(root='../../data', train=True, download=True, transform=transf
 
 
 def train(epoch):
+    # 动态修改参数学习率
+    if epoch % 5 == 0:
+        optimizer.param_groups[0]['lr'] *= 0.1
     # total_loss
-    total_loss = []
-    train_loader = DataLoader(train_set, batch_size=8, shuffle=True)
+    epoch_loss = []
     # 加入进度条
+    train_loader = DataLoader(train_set, batch_size=4, shuffle=True)
     train_loader = tqdm(train_loader, total=len(train_loader))
     model.train()
 
@@ -67,7 +57,7 @@ def train(epoch):
         outputs = model(images)
         # 计算损失
         loss = criterion(outputs, labels)
-        total_loss.append(loss.item())
+        epoch_loss.append(loss.item())
         # 反向传播
         loss.backward()
         # 更新参数
@@ -75,17 +65,36 @@ def train(epoch):
         # # 打印损失
         # train_loader.set_description(f'loss: {loss.item():.4f}')
 
+    mean_loss = np.mean(epoch_loss)
+    return mean_loss, model, optimizer
 
-    # 保存模型
-    save(model.state_dict(), model_path)
-    # 保存参数
-    save(optimizer.state_dict(), optimizer_path)
-    print(f'第{epoch}个epoch训练完成, 损失为 {np.mean(total_loss):.4f}, 准确率为 {valid.valid_succeed():.4f}')
 
+def save_model_and_optimizer(model, optimizer, file_path):
+    save(model.state_dict(), file_path)
+    save(optimizer.state_dict(), file_path)
+
+
+def main():
+    high_accuracy = 0
+    epochs = 10
+    last_model, last_optimizer = None, None
+    for epoch in range(1, epochs+1):
+        epoch_loss, model, optimizer = train(epoch)
+        if not os.path.exists(best_model_path):
+            save(model.state_dict(), best_model_path)
+            save(optimizer.state_dict(), best_optimizer_path)
+        epoch_accuracy = valid.valid_succeed()
+        last_model, last_optimizer = model, optimizer
+        if epoch_accuracy > high_accuracy:
+            high_accuracy = epoch_accuracy
+            # 保存最优模型
+            save(model.state_dict(), best_model_path)
+            # 保存最优参数
+            save(optimizer.state_dict(), best_optimizer_path)
+        print(f'第{epoch}个epoch训练完成, 损失为 {epoch_loss:.4f}, 准确率为 {epoch_accuracy:.4f}, 当前最高准确率为 {high_accuracy:.4f}')
+    print(f'{"-" * 30} 训练完成 {"-" * 30}')
+    save(last_model.state_dict(), './models/mnist_last_model.pkl')
+    save(last_optimizer.state_dict(), './models/mnist_last_optimizer.pkl')
 
 if __name__ == '__main__':
-    for epoch in range(1, 11):
-        print('-' * 20)
-        train(epoch)
-    print('训练完成')
-    print('-' * 20)
+    main()

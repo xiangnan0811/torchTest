@@ -1,33 +1,22 @@
-from torchvision.datasets import MNIST
-from torchvision import transforms
-from torch.utils.data import DataLoader
-from torch import nn, load, no_grad
-from tqdm import tqdm
-import numpy as np
 import os
 
+import numpy as np
+from tqdm import tqdm
+from torchvision import transforms
+from torch import nn, load, no_grad
+from torchvision.datasets import MNIST
+from torch.utils.data import DataLoader
 
-class MNISTModel(nn.Module):
-    def __init__(self):
-        super(MNISTModel, self).__init__()
-        self.fc1 = nn.Linear(1 * 28 * 28, 100)
-        self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(100, 10)
-
-    def forward(self, x):
-        x = x.view(-1, 1 * 28 * 28)
-        x = self.fc1(x)
-        x = self.relu(x)
-        out = self.fc2(x)
-        return out
+from model import MNISTModel
 
 
 def valid_succeed():
     # 实例化模型
     model = MNISTModel()
     # 加载模型
-    if os.path.exists('./models/mnist_model.pkl'):
-        model.load_state_dict(load('./models/mnist_model.pkl'))
+    best_model_path = './models/mnist_best_model.pkl'
+    if os.path.exists(best_model_path):
+        model.load_state_dict(load(best_model_path))
     # 定义损失函数
     criterion = nn.CrossEntropyLoss()
     # 加载数据集
@@ -52,7 +41,7 @@ def valid_succeed():
             # print(f'result:\n\t{result}')
             # print(f'target:\n\t{target}')
             # print(f'result_mean:\n\t{result_mean}')
-            loss = criterion(output, target)
+            # loss = criterion(output, target)
             # valid_loader.set_description(f'Loss: {loss.item():.4f}')
 
 
