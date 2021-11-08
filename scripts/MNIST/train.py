@@ -19,6 +19,7 @@ model = MNISTModel()
 model = model.to(device)
 # 定义损失函数
 criterion = nn.CrossEntropyLoss()
+
 # 定义优化器
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 # 加载已经训练好的模型和优化器继续进行训练
@@ -44,7 +45,7 @@ def train(epoch):
     # total_loss
     epoch_loss = []
     # 加入进度条
-    train_loader = DataLoader(train_set, batch_size=8, shuffle=True)
+    train_loader = DataLoader(train_set, batch_size=4, shuffle=True)
     train_loader = tqdm(train_loader, total=len(train_loader))
     model.train()
 

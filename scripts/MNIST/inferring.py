@@ -10,7 +10,7 @@ from model import MNISTModel
 # 实例化模型
 model = MNISTModel()
 # 加载模型
-model.load_state_dict(load('./models/mnist_last_model.pkl'))
+model.load_state_dict(load('./models/mnist_best_model.pkl'))
 # 加载数据集
 transform = transforms.Compose([
     transforms.Grayscale(1),
@@ -18,7 +18,7 @@ transform = transforms.Compose([
     transforms.Normalize((0.1307,), (0.3081,))
 ])
 
-image = Image.open('scripts/MNIST/7.jpg')
+image = Image.open('scripts/MNIST/3.jpg')
 image = transform(image)
 
 model.eval()

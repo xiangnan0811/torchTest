@@ -3,7 +3,7 @@ import os
 import numpy as np
 from tqdm import tqdm
 from torchvision import transforms
-from torch import nn, load, no_grad
+from torch import nn, load, no_grad, device, cuda
 from torchvision.datasets import MNIST
 from torch.utils.data import DataLoader
 
@@ -11,8 +11,11 @@ from model import MNISTModel
 
 
 def valid_succeed():
+    # 选取设备
+    device1 = device('cuda' if cuda.is_available() else 'cpu')
     # 实例化模型
     model = MNISTModel()
+    model = model.to(device1)
     # 加载模型
     last_model_path = './models/mnist_last_model.pkl'
     if os.path.exists(last_model_path):
@@ -34,6 +37,7 @@ def valid_succeed():
     # 测试模型
     with no_grad():
         for batch_idx, (data, target) in enumerate(valid_loader):
+            data, target = data.to(device1), target.to(device1)
             output = model(data)
             result = output.max(dim=1).indices
             result_mean = result.eq(target).float().mean()
