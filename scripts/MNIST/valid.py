@@ -14,9 +14,9 @@ def valid_succeed():
     # 实例化模型
     model = MNISTModel()
     # 加载模型
-    best_model_path = './models/mnist_best_model.pkl'
-    if os.path.exists(best_model_path):
-        model.load_state_dict(load(best_model_path))
+    last_model_path = './models/mnist_last_model.pkl'
+    if os.path.exists(last_model_path):
+        model.load_state_dict(load(last_model_path))
     # 定义损失函数
     criterion = nn.CrossEntropyLoss()
     # 加载数据集

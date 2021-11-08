@@ -23,10 +23,12 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 # 加载已经训练好的模型和优化器继续进行训练
 best_model_path = './models/mnist_best_model.pkl'
+last_model_path = './models/mnist_last_model.pkl'
 best_optimizer_path = './models/mnist_best_optimizer.pkl'
-if os.path.exists(best_model_path):
-    model.load_state_dict(load(best_model_path))
-    optimizer.load_state_dict(load(best_optimizer_path))
+last_optimizer_path = './models/mnist_last_optimizer.pkl'
+if os.path.exists(last_model_path):
+    model.load_state_dict(load(last_model_path))
+    optimizer.load_state_dict(load(last_optimizer_path))
 # 加载数据集
 transform = transforms.Compose([
     transforms.ToTensor(),
@@ -42,7 +44,7 @@ def train(epoch):
     # total_loss
     epoch_loss = []
     # 加入进度条
-    train_loader = DataLoader(train_set, batch_size=4, shuffle=True)
+    train_loader = DataLoader(train_set, batch_size=8, shuffle=True)
     train_loader = tqdm(train_loader, total=len(train_loader))
     model.train()
 
@@ -65,6 +67,8 @@ def train(epoch):
         # # 打印损失
         # train_loader.set_description(f'loss: {loss.item():.4f}')
 
+    save(model.state_dict(), last_model_path)
+    save(optimizer.state_dict(), last_optimizer_path)
     mean_loss = np.mean(epoch_loss)
     return mean_loss, model, optimizer
 
@@ -77,14 +81,9 @@ def save_model_and_optimizer(model, optimizer, file_path):
 def main():
     high_accuracy = 0
     epochs = 10
-    last_model, last_optimizer = None, None
     for epoch in range(1, epochs+1):
         epoch_loss, model, optimizer = train(epoch)
-        if not os.path.exists(best_model_path):
-            save(model.state_dict(), best_model_path)
-            save(optimizer.state_dict(), best_optimizer_path)
         epoch_accuracy = valid.valid_succeed()
-        last_model, last_optimizer = model, optimizer
         if epoch_accuracy > high_accuracy:
             high_accuracy = epoch_accuracy
             # 保存最优模型
@@ -93,8 +92,7 @@ def main():
             save(optimizer.state_dict(), best_optimizer_path)
         print(f'第{epoch}个epoch训练完成, 损失为 {epoch_loss:.4f}, 准确率为 {epoch_accuracy:.4f}, 当前最高准确率为 {high_accuracy:.4f}')
     print(f'{"-" * 30} 训练完成 {"-" * 30}')
-    save(last_model.state_dict(), './models/mnist_last_model.pkl')
-    save(last_optimizer.state_dict(), './models/mnist_last_optimizer.pkl')
+
 
 if __name__ == '__main__':
     main()
