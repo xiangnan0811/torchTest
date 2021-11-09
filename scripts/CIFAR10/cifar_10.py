@@ -7,7 +7,7 @@ import torch
 from torch import nn as nn
 from torch import optim as optim
 
-from model import CIFAR10Model
+from model import CIFAR10Model, AdaptiveAvgCNNNet, LeNet, VGG 
 from utils import prepare_data, specify_device
 
 
