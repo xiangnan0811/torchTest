@@ -72,13 +72,13 @@ def train(epochs, model, train_loader, valid_loader, optimizer, criterion, devic
             outputs = model(images)
             # 计算损失
             loss = criterion(outputs, labels)
-            epoch_loss.append(loss.item())
+            loss_value = loss.item()
+            train_loader.set_description(f'loss: {loss_value:.4f}')
+            epoch_loss.append(loss_value)
             # 反向传播
             loss.backward()
             # 更新参数
             optimizer.step()
-            # # 打印损失
-            # train_loader.set_description(f'loss: {loss.item():.4f}')
 
         epoch_accuracy = check_accuracy(model, valid_loader, device)
         if epoch_accuracy > best_accuracy:
@@ -139,7 +139,7 @@ def main():
     device = specify_device(use_gpu=True)
 
     # 实例化模型 定义损失函数 定义优化器
-    model = CIFAR10Model()
+    model = VGG('VGG16')
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum)
 
@@ -185,6 +185,6 @@ def multi_main():
 
 if __name__ == '__main__':
     # 普通单模型
-    # main()
+    main()
     # 多模型集成
-    multi_main()
+    # multi_main()
