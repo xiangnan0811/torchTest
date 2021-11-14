@@ -1,0 +1,6 @@
+numpy==1.19.5
+opencv_python==4.5.4.58
+Pillow==8.4.0
+torch==1.9.1
+torchvision==0.2.2
+tqdm==4.62.3
