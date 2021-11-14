@@ -25,7 +25,7 @@ def specify_device(use_gpu: bool = True):
     return device
 
 
-def check_accuracy(model, loader, device):
+def check_accuracy(model, loader, device, batch_size):
     model.eval()
     succeed = []
     loader = tqdm(loader, total=len(loader))
@@ -34,6 +34,8 @@ def check_accuracy(model, loader, device):
         for data, target in loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
+            output = output.view(batch_size*4, 8)
+            target = target.view(-1)
             result = output.max(dim=1)[1]
             result_mean = result.eq(target).float().mean()
             succeed.append(result_mean.item())
@@ -73,7 +75,7 @@ def train(epochs, model, train_loader, valid_loader, optimizer, criterion, devic
             # 更新参数
             optimizer.step()
 
-        epoch_accuracy = check_accuracy(model, valid_loader, device)
+        epoch_accuracy = check_accuracy(model, valid_loader, device, batch_size)
         if epoch_accuracy > best_accuracy:
             best_accuracy = epoch_accuracy
             # 保存最优模型
@@ -132,7 +134,7 @@ def main():
     best_model = train(epochs, model, train_loader, valid_loader, optimizer, criterion, device, batch_size)
     print(f'\n{"-" * 30} 训练完成 {"-" * 30}\n')
     # 测试
-    test_best_accuracy = check_accuracy(best_model, test_loader, device)
+    test_best_accuracy = check_accuracy(best_model, test_loader, device, batch_size)
     print(f'最优模型测试准确率为：{test_best_accuracy*100:.2f}%')
 
 
