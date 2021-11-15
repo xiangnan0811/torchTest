@@ -54,9 +54,9 @@ def train(epochs, model, train_loader, valid_loader, optimizer, criterion, devic
         # epoch_loss
         epoch_loss = []
         # 训练模型
+        model.train()
         train_loader = tqdm(train_loader, total=len(train_loader))
         for images, labels in train_loader:
-            model.train()
             # 指定运行环境
             images, labels = images.to(device), labels.to(device)
             # 清空梯度
@@ -68,8 +68,8 @@ def train(epochs, model, train_loader, valid_loader, optimizer, criterion, devic
             # 计算损失
             loss = criterion(outputs, labels)
             loss_value = loss.item()
-            train_loader.set_description(f'loss: {loss_value:.4f}')
             epoch_loss.append(loss_value)
+            train_loader.set_description(f'loss: {np.mean(epoch_loss):.4f}')
             # 反向传播
             loss.backward()
             # 更新参数
@@ -90,22 +90,14 @@ def train(epochs, model, train_loader, valid_loader, optimizer, criterion, devic
 
 def prepare(batch_size):
     captcha_root_path = os.path.join(os.getcwd(), 'data/letter_captcha')
-    train_transform = T.Compose([
+    transforms = T.Compose([
         T.ToTensor(),
-        T.Normalize((241.9429, 241.9919, 241.8501), (47.7094, 47.4601, 48.1772))
-    ])
-    valid_transform = T.Compose([
-        T.ToTensor(),
-        T.Normalize((242.1065, 241.8031, 242.4267), (47.4514, 48.9740, 45.7875))
-    ])
-    test_transform = T.Compose([
-        T.ToTensor(),
-        T.Normalize((241.8125, 241.9233, 241.9344), (47.8327, 47.2690, 47.2125))
+        T.Normalize((0.9478, 0.9467, 0.9474), (0.1911, 0.1891, 0.1946))
     ])
     # 数据
-    train_dataset = LetterCaptchaDataset(root=f'{captcha_root_path}/train', transform=train_transform)
-    valid_dataset = LetterCaptchaDataset(root=f'{captcha_root_path}/valid', transform=valid_transform)
-    test_dataset = LetterCaptchaDataset(root=f'{captcha_root_path}/test', transform=test_transform)
+    train_dataset = LetterCaptchaDataset(root=f'{captcha_root_path}/train', transform=transforms)
+    valid_dataset = LetterCaptchaDataset(root=f'{captcha_root_path}/valid', transform=transforms)
+    test_dataset = LetterCaptchaDataset(root=f'{captcha_root_path}/test', transform=transforms)
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
     valid_loader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
@@ -125,7 +117,7 @@ def main():
     # 实例化模型 定义损失函数 定义优化器
     model = LetterCaptchaModel()
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum)
+    optimizer = optim.Adam(model.parameters())
 
     # 数据准备
     train_loader, valid_loader, test_loader = prepare(batch_size)

@@ -40,10 +40,13 @@ class LetterCaptchaDataset(Dataset):
 
 
 if __name__ == '__main__':
-    captcha_path = os.path.join(os.getcwd(), 'data/letter_captcha')
+    captcha_path = os.path.join(os.getcwd(), 'data/letter_captcha/valid')
     transform = transforms.Compose([
         transforms.ToTensor(),
     ])
     captchas = LetterCaptchaDataset(captcha_path, transform)
-    print(list(captchas))
+    print(len(captchas))
+    print(type(captchas))
+    print(type(list(captchas)[0]))
+    print(list(captchas)[0])
 
