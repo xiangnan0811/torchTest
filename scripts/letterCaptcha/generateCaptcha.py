@@ -128,14 +128,17 @@ if not os.path.exists(captcha_dir):
 else:
     print('训练图片生成 文件夹已经存在')
 while 1:
-    number = input('请输入要生成的验证码数量')
+    number = input('请输入要生成的验证码数量\n')
+    if number == 'q':
+        exit(0)
     try:
         for i in range(int(number)):
             image_data, label = create_validate_code(
                 (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)),
                 chars=init_chars
             )
-            with open(f'{captcha_dir}/{label}_{int(time.time())}.png', 'wb') as f:
+            time.sleep(0.01)
+            with open(f'{captcha_dir}/{label}_{int(time.time()*1000)}.png', 'wb') as f:
                 f.write(image_data)
             print('生成第', i+1, '个图片成功')
     except ValueError:
@@ -144,5 +147,5 @@ while 1:
         import traceback
         traceback.print_exc()
         break
-    input('理论上生成完成了~，QAQ 共生成了' + number + '个验证码')
-input('出现未知错误，错误已打印')
+    input('理论上生成完成了~，QAQ 共生成了' + number + '个验证码\n')
+print('出现未知错误，错误已打印')
